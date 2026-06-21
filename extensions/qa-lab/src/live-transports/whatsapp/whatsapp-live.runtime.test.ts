@@ -716,6 +716,8 @@ describe("WhatsApp QA live runtime", () => {
         target: "group",
       },
     ]);
+    expect(runs[0]?.run.input).not.toContain("openclawqa");
+    expect(runs[1]?.run.input).toMatch(/^openclawqa\b/u);
 
     for (const { run } of runs) {
       expect(() =>

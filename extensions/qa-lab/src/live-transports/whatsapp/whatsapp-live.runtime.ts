@@ -426,10 +426,14 @@ const whatsappQaCredentialPayloadSchema = z.object({
 
 function buildWhatsAppQuoteReplyRun(target: "dm" | "group"): WhatsAppQaMessageScenarioRun {
   const token = `WHATSAPP_QA_REPLY_TO_${target.toUpperCase()}_${randomUUID().slice(0, 8).toUpperCase()}`;
+  const input =
+    target === "group"
+      ? `openclawqa reply with only this exact marker: ${token}`
+      : `Reply with only this exact marker: ${token}`;
   return {
     configMode: "allowlist",
     expectReply: true,
-    input: `Reply with only this exact marker: ${token}`,
+    input,
     matchText: token,
     target,
     verify: (reply, context) => {
