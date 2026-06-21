@@ -88,7 +88,7 @@ jobs:
           COMMENT_BODY: ${{ github.event.comment.body }}
         run: |
           set -euo pipefail
-          if grep -Eiq '(^|[[:space:]])@(clawsweeper|openclaw-clawsweeper)\b(\[bot\])?|(^|[[:space:]])/(clawsweeper|review|automerge|autoclose)\b' <<< "$COMMENT_BODY"; then
+          if grep -Eiq '(^|[[:space:]])@(clawsweeper|openclaw-clawsweeper)\b(\[bot\])?|(^|[[:space:]])/(clawsweeper|review|re-review|rerun[ -]?review|status|explain|fix|build|implement|create[ -]?pr|fix[ -]?issue|autofix|auto[ -]?fix|automerge|auto[ -]?merge|approve|stop|autoclose)\b' <<< "$COMMENT_BODY"; then
             echo "is_command=true" >> "$GITHUB_OUTPUT"
           else
             echo "is_command=false" >> "$GITHUB_OUTPUT"
