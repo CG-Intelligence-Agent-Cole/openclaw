@@ -70,6 +70,7 @@ type WhatsAppQaScenarioId =
   | "whatsapp-context-command"
   | "whatsapp-group-allowlist-block"
   | "whatsapp-group-audio-gating"
+  | "whatsapp-group-reply-to-message"
   | "whatsapp-help-command"
   | "whatsapp-inbound-image-caption"
   | "whatsapp-inbound-structured-messages"
@@ -423,6 +424,27 @@ const whatsappQaCredentialPayloadSchema = z.object({
   groupJid: z.string().trim().min(1).optional(),
 });
 
+function buildWhatsAppQuoteReplyRun(target: "dm" | "group"): WhatsAppQaMessageScenarioRun {
+  const token = `WHATSAPP_QA_REPLY_TO_${target.toUpperCase()}_${randomUUID().slice(0, 8).toUpperCase()}`;
+  return {
+    configMode: "allowlist",
+    expectReply: true,
+    input: `Reply with only this exact marker: ${token}`,
+    matchText: token,
+    target,
+    verify: (reply, context) => {
+      if (!context.sent.messageId) {
+        throw new Error("WhatsApp driver did not return a triggering message id.");
+      }
+      if (reply.quoted?.messageId !== context.sent.messageId) {
+        throw new Error(
+          `expected reply quote ${context.sent.messageId}, got ${reply.quoted?.messageId ?? "<missing>"}`,
+        );
+      }
+    },
+  };
+}
+
 const WHATSAPP_QA_SCENARIOS: WhatsAppQaScenarioDefinition[] = [
   {
     id: "whatsapp-canary",
@@ -649,31 +671,24 @@ const WHATSAPP_QA_SCENARIOS: WhatsAppQaScenarioDefinition[] = [
   },
   {
     id: "whatsapp-reply-to-message",
+    standardId: "quote-reply",
     title: "WhatsApp DM reply-to mode quotes the triggering message",
     timeoutMs: 60_000,
     configOverrides: {
       replyToMode: "all",
     },
-    buildRun: () => {
-      const token = `WHATSAPP_QA_REPLY_TO_${randomUUID().slice(0, 8).toUpperCase()}`;
-      return {
-        configMode: "allowlist",
-        expectReply: true,
-        input: `Reply with only this exact marker: ${token}`,
-        matchText: token,
-        target: "dm",
-        verify: (reply, context) => {
-          if (!context.sent.messageId) {
-            throw new Error("WhatsApp driver did not return a triggering message id.");
-          }
-          if (reply.quoted?.messageId !== context.sent.messageId) {
-            throw new Error(
-              `expected reply quote ${context.sent.messageId}, got ${reply.quoted?.messageId ?? "<missing>"}`,
-            );
-          }
-        },
-      };
+    buildRun: () => buildWhatsAppQuoteReplyRun("dm"),
+  },
+  {
+    id: "whatsapp-group-reply-to-message",
+    standardId: "quote-reply",
+    title: "WhatsApp group reply-to mode quotes the triggering message",
+    timeoutMs: 60_000,
+    configOverrides: {
+      replyToMode: "all",
     },
+    requiresGroupJid: true,
+    buildRun: () => buildWhatsAppQuoteReplyRun("group"),
   },
   {
     id: "whatsapp-reply-context-isolation",
