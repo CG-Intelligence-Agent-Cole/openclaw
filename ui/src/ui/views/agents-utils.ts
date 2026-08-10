@@ -171,6 +171,7 @@ type AgentConfigEntry = {
   agentDir?: string;
   model?: unknown;
   agentRuntime?: unknown;
+  tts?: unknown;
   skills?: string[];
   tools?: {
     profile?: string;
